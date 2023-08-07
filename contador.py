@@ -2,54 +2,44 @@ import mysql.connector
 import tkinter as tk
 from tkinter import ttk
 
-current_mode = 'dark'
+modo_atual = 'dark'
 
 def bg():
-    light = tk.PhotoImage(file='brightness.png')
-    dark = tk.PhotoImage(file='dark.png')
+    light_icon = tk.PhotoImage(file='brightness.png')
+    dark_icon = tk.PhotoImage(file='dark.png')
 
     dark_mode_button = tk.Button(root, command=toggle_dark_mode)
-    dark_mode_button.config(image=dark, bd=0, bg='#1d1d1d')
+    dark_mode_button.config(image=dark_icon, bd=0, bg='#1d1d1d')
     dark_mode_button.pack(pady=10)
 
-    tela = tk.Canvas(root, width=600, height=20, bg='#1d1d1d', bd=0, highlightthickness=0,
-                     relief='ridge')
-    tela.pack()
+    canvas = tk.Canvas(root, width=600, height=20, bg='#1d1d1d', bd=0, highlightthickness=0, relief='ridge')
+    canvas.pack()
 
 def toggle_dark_mode():
-    global current_mode
+    global modo_atual
 
-    if current_mode == 'dark':
+    if modo_atual == 'dark':
+        apply_light_mode()  # Apply light mode settings
         root['bg'] = 'white'
-        style.configure("TLabel", background="lightgray", foreground="black", font=("Arial", 12))
-        style.configure("TButton", background="blue", foreground="white", font=("Arial", 10))
-        option_menu_1.configure(background="white", foreground="black", highlightbackground="white")
-        entry_faltas.configure(background="white", foreground="black", highlightbackground="white")
-        filter_button.configure(background="white", foreground="black", highlightbackground="white")
-        clear_button.configure(background="white", foreground="black", highlightbackground="white")
-        tree.configure(style="Light.Treeview")
-        dark_mode_button.config(image=light, bg='white')
-        current_mode = 'light'
+        dark_mode_button.config(image=light_icon, bg='white')
+        modo_atual = 'light'
     else:
+        apply_dark_mode()  # Apply dark mode settings
         root['bg'] = '#1d1d1d'
-        style.configure("TLabel", background="#1d1d1d", foreground="white", font=("Arial", 12))
-        style.configure("TButton", background="blue", foreground="white", font=("Arial", 10))
-        option_menu_1.configure(background="#1d1d1d", foreground="white", font=("Arial", 10))
-        entry_faltas.configure(background="#1d1d1d", foreground="white", highlightbackground="#1d1d1d")
-        filter_button.configure(background="#1d1d1d", foreground="white", highlightbackground="white")
-        clear_button.configure(background="#1d1d1d", foreground="white", highlightbackground="white")
-        tree.configure(style="Dark.Treeview")
-        dark_mode_button.config(image=dark, bg='#1d1d1d')
-        current_mode = 'dark'
-
+        dark_mode_button.config(image=dark_icon, bg='#1d1d1d')
+        modo_atual = 'dark'
 
 def apply_light_mode():
     style.configure("TLabel", background="lightgray", foreground="black", font=("Arial", 12))
-    style.configure("TButton", background="blue", foreground="white", font=("Arial", 12))
-    option_menu_1.configure(background="white", foreground="black", highlightbackground="white")
-    entry_faltas.configure(background="white", foreground="black", highlightbackground="white")
-    filter_button.configure(background='white', foreground='black', font=("Arial", 12))
-    clear_button.configure(background='white', foreground='black', font=("Arial", 12))
+    style.configure("TButton", background="blue", foreground="black", font=("Arial", 12))
+    style.configure("Dark.Treeview.Heading", background="#1d1d1d", foreground="black")
+    style.configure("Dark.Treeview", background="#1d1d1d", foreground="black", rowheight=25)
+
+def apply_dark_mode():
+    style.configure("TLabel", background="#1d1d1d", foreground="white", font=("Arial", 12))
+    style.configure("TButton", background="gray", foreground="white", font=("Arial", 12))
+    style.configure("Dark.Treeview.Heading", background="#1d1d1d", foreground="white")
+    style.configure("Dark.Treeview", background="#1d1d1d", foreground="white", rowheight=25)
 
 def create_database_table():
     connection = mysql.connector.connect(
@@ -141,30 +131,30 @@ def update_table():
     data = cur.fetchall()
 
     # Limpar a tabela antes de atualizá-la
-    for row in tree.get_children():
-        tree.delete(row)
+    for row in table.get_children():
+        table.delete(row)
 
     # Atualizar a tabela com os dados obtidos do banco de dados
     for item in data:
-        tree.insert("", "end", values=item)
+        table.insert("", "end", values=item)
 
     cur.close()
     connection.close()
 
 root = tk.Tk()
-root.title("Contador de Faltas")
+root.title("Attendance Tracker")
 root.geometry("600x600")
 
-# Estilos
+# Styles
 style = ttk.Style()
 style.configure("TLabel", background="lightgray", font=("Arial", 12))
 style.configure("TButton", background="blue", foreground="white", font=("Arial", 12))
 
-# Criar o botão de alternância (toggle) do modo escuro
-light = tk.PhotoImage(file='brightness.png')
-dark = tk.PhotoImage(file='dark.png')
+# Create the toggle dark mode button
+light_icon = tk.PhotoImage(file='brightness.png')
+dark_icon = tk.PhotoImage(file='dark.png')
 dark_mode_button = tk.Button(root, command=toggle_dark_mode, bd=0, bg='#1d1d1d')
-dark_mode_button.config(image=dark)
+dark_mode_button.config(image=dark_icon)
 dark_mode_button.pack(pady=10)
 
 #Seleção das matérias
@@ -173,25 +163,29 @@ combo_box_1.set("Matérias")
 options_1 = ["Banco de Dados – Relacional", "Engenharia de Software II", "Estrutura de Dados", 'Desenvolvimento Web II','Técnicas de Programação',
              'Matemática para Computação']
 option_menu_1 = tk.OptionMenu(root, combo_box_1, *options_1)
-option_menu_1.pack()
+option_menu_1.config()
+option_menu_1.pack(pady=10)
 
 entry_faltas = tk.Entry(root)
 entry_faltas.pack(padx=10)
 
-filter_button = tk.Button(root, text="Registrar Faltas", command=materias)
-filter_button.pack()
+filter_button = tk.Button(root, text="Registrar faltas", command=materias)
+filter_button.pack(pady=10)
 
-# Criar a tabela
-tree = tk.ttk.Treeview(root, columns=("Matéria", "Faltas"), show="headings")
-tree.heading("Matéria", text="Matéria")
-tree.heading("Faltas", text="Faltas")
-tree.pack()
+# Create the table
+table = ttk.Treeview(root, columns=("Matérias", "Faltas"), show="headings")
+table.heading("Matérias", text="Matérias")
+table.heading("Faltas", text="Faltas")
+table.pack()
 
-# Atualizar a tabela inicialmente
+style.configure("Dark.Treeview.Heading", background="#1d1d1d", foreground="white")
+style.configure("Dark.Treeview", background="#1d1d1d", foreground="white", rowheight=25)
+
+# Update the table initially
 create_database_table()
 update_table()
 
-clear_button = tk.Button(root,text='Limpar a quantia de faltas',command=clear_materia)
-clear_button.pack(pady=10)
+btn_clear = tk.Button(root, text='Limpar faltas', command=clear_materia)
+btn_clear.pack(pady=10)
 
 root.mainloop()
